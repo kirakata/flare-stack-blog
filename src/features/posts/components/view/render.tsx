@@ -42,10 +42,18 @@ export function renderReact(content: JSONContent) {
         },
         codeBlock: ({ node }) => {
           const code = node.textContent || "";
-          const language =
-            (node.attrs as { language?: string | null }).language || null;
+          const attrs = node.attrs as {
+            language?: string | null;
+            highlightedHtml?: string;
+          };
 
-          return <CodeBlock code={code} language={language} />;
+          return (
+            <CodeBlock
+              code={code}
+              language={attrs.language || null}
+              highlightedHtml={attrs.highlightedHtml}
+            />
+          );
         },
         tableCell: ({ node, children }) => {
           const attrs = node.attrs as {

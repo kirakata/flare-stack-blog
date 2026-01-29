@@ -42,17 +42,6 @@ export const Route = createFileRoute("/_public/post/$slug")({
 
     if (!post) throw notFound();
 
-    // 后台预加载 Shiki 语言，不阻塞 loader
-    if (post.contentJson) {
-      void (async () => {
-        const { extractCodeLanguages } =
-          await import("@/features/posts/utils/content");
-        const { loadLanguage } = await import("@/lib/shiki");
-        const languages = extractCodeLanguages(post.contentJson);
-        await Promise.all(languages.map((lang) => loadLanguage(lang)));
-      })();
-    }
-
     return post;
   },
   head: ({ loaderData: post }) => ({

@@ -67,8 +67,17 @@ export async function findPostBySlug(
       publicOnly: true,
     });
     if (!post) return null;
+
+    let contentJson = post.contentJson;
+    if (contentJson) {
+      const { highlightCodeBlocks } =
+        await import("@/features/posts/utils/content");
+      contentJson = await highlightCodeBlocks(contentJson);
+    }
+
     return {
       ...post,
+      contentJson,
       toc: generateTableOfContents(post.contentJson),
     };
   };

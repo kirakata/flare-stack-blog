@@ -4,6 +4,15 @@ import { CodeBlockView } from "./code-block-view";
 import { createShikiPlugin } from "./shiki-plugin";
 
 export const CodeBlockExtension = CodeBlock.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      highlightedHtml: {
+        default: null,
+        rendered: false,
+      },
+    };
+  },
   addOptions() {
     return {
       ...this.parent?.(),

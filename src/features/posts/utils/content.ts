@@ -43,20 +43,30 @@ export function extractAllImageKeys(doc: JSONContent | null): Array<string> {
   return Array.from(new Set(keys)); // 去重
 }
 
-export function extractCodeLanguages(doc: JSONContent | null): Array<string> {
-  const languages: Set<string> = new Set();
+export async function highlightCodeBlocks(
+  doc: JSONContent,
+): Promise<JSONContent> {
+  const { highlight } = await import("@/lib/shiki");
+  const cloned = structuredClone(doc);
 
-  function traverse(node: JSONContent) {
-    if (node.type === "codeBlock" && node.attrs?.language) {
-      if (node.attrs.language !== "text") {
-        languages.add(node.attrs.language);
+  async function traverse(node: JSONContent) {
+    if (node.type === "codeBlock") {
+      const code = node.content?.map((n) => n.text || "").join("") || "";
+      const lang = node.attrs?.language || "text";
+      try {
+        const html = await highlight(code.trim(), lang);
+        node.attrs = { ...node.attrs, highlightedHtml: html };
+      } catch (e) {
+        console.warn(`Failed to highlight code block (lang: ${lang}):`, e);
       }
     }
-    if (node.content) node.content.forEach(traverse);
+    if (node.content) {
+      await Promise.all(node.content.map(traverse));
+    }
   }
 
-  if (doc) traverse(doc);
-  return Array.from(languages);
+  await traverse(cloned);
+  return cloned;
 }
 
 export function convertToPlainText(doc: JSONContent | null): string {
