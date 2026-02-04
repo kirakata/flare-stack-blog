@@ -18,6 +18,7 @@ import ConfirmationModal from "@/components/ui/confirmation-modal";
 import { authClient } from "@/lib/auth/auth.client";
 import { AUTH_KEYS } from "@/features/auth/queries";
 import { cn } from "@/lib/utils";
+import { blogConfig } from "@/blog.config";
 
 interface NavItem {
   path: keyof FileRoutesByTo;
@@ -119,7 +120,7 @@ export function SideBar({
         <div className="h-20 flex items-center justify-between px-6 shrink-0 border-b border-border/30">
           <Link to="/admin" className="flex items-center gap-3 group">
             <span className="font-serif font-black text-xl tracking-tighter group-hover:opacity-80 transition-opacity">
-              [ akuang ]
+              [ {blogConfig.name} ]
             </span>
           </Link>
           <button
