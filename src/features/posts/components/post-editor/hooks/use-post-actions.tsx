@@ -320,10 +320,22 @@ export function usePostActions({
             currentTagIds.add(existingTag.id);
           }
         } else {
-          // Create new tag
-          const newTag = await createTagFn({ data: { name } });
-          newTagIds.push(newTag.id);
-          currentTagIds.add(newTag.id);
+          const result = await createTagFn({ data: { name } });
+          if (result.error) {
+            const reason = result.error.reason;
+            switch (reason) {
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+              case "TAG_NAME_ALREADY_EXISTS":
+                // 重名时跳过，不中断流程
+                continue;
+              default: {
+                reason satisfies never;
+                throw new Error("未知错误");
+              }
+            }
+          }
+          newTagIds.push(result.data.id);
+          currentTagIds.add(result.data.id);
         }
       }
 

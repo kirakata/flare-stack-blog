@@ -9,6 +9,7 @@ import * as TagService from "@/features/tags/tags.service";
 import * as PostService from "@/features/posts/posts.service";
 import { TAGS_CACHE_KEYS } from "@/features/tags/tags.schema";
 import * as CacheService from "@/features/cache/cache.service";
+import { unwrap } from "@/lib/error";
 
 describe("TagService", () => {
   let ctx: ReturnType<typeof createAdminTestContext>;
@@ -26,8 +27,8 @@ describe("TagService", () => {
     });
 
     it("should return tags sorted by name", async () => {
-      await TagService.createTag(ctx, { name: "b-tag" });
-      await TagService.createTag(ctx, { name: "a-tag" });
+      unwrap(await TagService.createTag(ctx, { name: "b-tag" }));
+      unwrap(await TagService.createTag(ctx, { name: "a-tag" }));
 
       const result = await TagService.getTags(ctx, {
         sortBy: "name",
@@ -39,8 +40,8 @@ describe("TagService", () => {
     });
 
     it("should return tags with post counts", async () => {
-      const tag1 = await TagService.createTag(ctx, { name: "tag1" });
-      const tag2 = await TagService.createTag(ctx, { name: "tag2" });
+      const tag1 = unwrap(await TagService.createTag(ctx, { name: "tag1" }));
+      const tag2 = unwrap(await TagService.createTag(ctx, { name: "tag2" }));
 
       // Create a published post with tag1
       const post1 = await PostService.createEmptyPost(ctx);
@@ -76,8 +77,8 @@ describe("TagService", () => {
     });
 
     it("should filter public tags (only published posts)", async () => {
-      const tag1 = await TagService.createTag(ctx, { name: "tag1" });
-      const tag2 = await TagService.createTag(ctx, { name: "tag2" });
+      const tag1 = unwrap(await TagService.createTag(ctx, { name: "tag1" }));
+      const tag2 = unwrap(await TagService.createTag(ctx, { name: "tag2" }));
 
       const post1 = await PostService.createEmptyPost(ctx);
       await PostService.updatePost(ctx, {
@@ -128,7 +129,9 @@ describe("TagService", () => {
 
   describe("Caching", () => {
     it("should cache public tags list", async () => {
-      const tag = await TagService.createTag(ctx, { name: "cached-tag" });
+      const tag = unwrap(
+        await TagService.createTag(ctx, { name: "cached-tag" }),
+      );
 
       const post = await PostService.createEmptyPost(ctx);
       await PostService.updatePost(ctx, {
@@ -159,23 +162,24 @@ describe("TagService", () => {
   });
 
   describe("Admin Operations", () => {
-    it("should fail to create duplicate tag", async () => {
-      await TagService.createTag(ctx, { name: "dup-tag" });
-      await expect(
-        TagService.createTag(ctx, { name: "dup-tag" }),
-      ).rejects.toThrow("Tag name already exists");
+    it("should return TAG_NAME_ALREADY_EXISTS for duplicate tag", async () => {
+      unwrap(await TagService.createTag(ctx, { name: "dup-tag" }));
+      const result = await TagService.createTag(ctx, { name: "dup-tag" });
+      expect(result.error?.reason).toBe("TAG_NAME_ALREADY_EXISTS");
     });
 
     it("should update tag and invalidate cache", async () => {
-      const tag = await TagService.createTag(ctx, { name: "old-name" });
+      const tag = unwrap(await TagService.createTag(ctx, { name: "old-name" }));
 
       // Populate cache first
       await TagService.getPublicTags(ctx);
 
-      await TagService.updateTag(ctx, {
-        id: tag.id,
-        data: { name: "new-name" },
-      });
+      unwrap(
+        await TagService.updateTag(ctx, {
+          id: tag.id,
+          data: { name: "new-name" },
+        }),
+      );
       await waitForBackgroundTasks(ctx.executionCtx);
 
       // Check cache invalidated
@@ -187,7 +191,9 @@ describe("TagService", () => {
     });
 
     it("should delete tag and invalidate cache", async () => {
-      const tag = await TagService.createTag(ctx, { name: "delete-me" });
+      const tag = unwrap(
+        await TagService.createTag(ctx, { name: "delete-me" }),
+      );
 
       await TagService.getPublicTags(ctx); // Populate cache
 

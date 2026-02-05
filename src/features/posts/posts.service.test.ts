@@ -9,6 +9,7 @@ import {
 import * as PostService from "@/features/posts/posts.service";
 import * as TagService from "@/features/tags/tags.service";
 import * as CacheService from "@/features/cache/cache.service";
+import { unwrap } from "@/lib/error";
 
 describe("PostService", () => {
   let adminContext: ReturnType<typeof createAdminTestContext>;
@@ -255,9 +256,11 @@ describe("PostService", () => {
       const publicContext = createTestContext();
 
       // Create a tag
-      const tag = await TagService.createTag(adminContext, {
-        name: "TypeScript",
-      });
+      const tag = unwrap(
+        await TagService.createTag(adminContext, {
+          name: "TypeScript",
+        }),
+      );
 
       // Create 2 posts, only 1 with the tag
       const { id: post1Id } = await PostService.createEmptyPost(adminContext);
@@ -322,8 +325,12 @@ describe("PostService", () => {
       const publicContext = createTestContext();
 
       // Create tags
-      const tag1 = await TagService.createTag(adminContext, { name: "React" });
-      const tag2 = await TagService.createTag(adminContext, { name: "Vue" });
+      const tag1 = unwrap(
+        await TagService.createTag(adminContext, { name: "React" }),
+      );
+      const tag2 = unwrap(
+        await TagService.createTag(adminContext, { name: "Vue" }),
+      );
 
       // Create post with multiple tags
       const { id } = await PostService.createEmptyPost(adminContext);
@@ -544,9 +551,15 @@ describe("PostService", () => {
       const publicContext = createTestContext();
 
       // 1. Create Tags
-      const tag1 = await TagService.createTag(adminContext, { name: "Tag1" });
-      const tag2 = await TagService.createTag(adminContext, { name: "Tag2" });
-      const tag3 = await TagService.createTag(adminContext, { name: "Tag3" });
+      const tag1 = unwrap(
+        await TagService.createTag(adminContext, { name: "Tag1" }),
+      );
+      const tag2 = unwrap(
+        await TagService.createTag(adminContext, { name: "Tag2" }),
+      );
+      const tag3 = unwrap(
+        await TagService.createTag(adminContext, { name: "Tag3" }),
+      );
 
       // 2. Create Main Post (Tags: T1, T2)
       const { id: mainId } = await PostService.createEmptyPost(adminContext);

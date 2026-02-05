@@ -34,7 +34,22 @@ export function TagSelector({
 
   // Strict optimistic update following TanStack Query best practices
   const createTagMutation = useMutation({
-    mutationFn: (name: string) => createTagFn({ data: { name } }),
+    mutationFn: async (name: string) => {
+      const result = await createTagFn({ data: { name } });
+      if (result.error) {
+        const reason = result.error.reason;
+        switch (reason) {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          case "TAG_NAME_ALREADY_EXISTS":
+            throw new Error("该标签名称已存在");
+          default: {
+            reason satisfies never;
+            throw new Error("未知错误");
+          }
+        }
+      }
+      return result.data;
+    },
 
     // When mutate is called (BEFORE the request)
     onMutate: async (newTagName) => {

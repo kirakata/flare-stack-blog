@@ -46,15 +46,32 @@ export function TagManager() {
   }, [tags, searchTerm]);
 
   const updateTagMutation = useMutation({
-    mutationFn: (data: { id: number; name: string }) =>
-      updateTagFn({ data: { id: data.id, data: { name: data.name } } }),
+    mutationFn: async (data: { id: number; name: string }) => {
+      const result = await updateTagFn({
+        data: { id: data.id, data: { name: data.name } },
+      });
+      if (result.error) {
+        const reason = result.error.reason;
+        switch (reason) {
+          case "TAG_NOT_FOUND":
+            throw new Error("标签不存在");
+          case "TAG_NAME_ALREADY_EXISTS":
+            throw new Error("该标签名称已存在");
+          default: {
+            reason satisfies never;
+            throw new Error("未知错误");
+          }
+        }
+      }
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TAGS_KEYS.admin });
       setTagToEdit(null);
       toast.success("标签已重命名");
     },
     onError: (err: Error) => {
-      toast.error("更新失败: " + (err.message || "未知错误"));
+      toast.error(err.message);
     },
   });
 
@@ -71,7 +88,22 @@ export function TagManager() {
   });
 
   const createTagMutation = useMutation({
-    mutationFn: (name: string) => createTagFn({ data: { name } }),
+    mutationFn: async (name: string) => {
+      const result = await createTagFn({ data: { name } });
+      if (result.error) {
+        const reason = result.error.reason;
+        switch (reason) {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          case "TAG_NAME_ALREADY_EXISTS":
+            throw new Error("该标签名称已存在");
+          default: {
+            reason satisfies never;
+            throw new Error("未知错误");
+          }
+        }
+      }
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TAGS_KEYS.admin });
       setNewTagName("");
@@ -79,7 +111,7 @@ export function TagManager() {
       toast.success("标签已创建");
     },
     onError: (err: Error) => {
-      toast.error("创建失败: " + (err.message || "未知错误"));
+      toast.error(err.message);
     },
   });
 
