@@ -25,8 +25,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply DB --remote",
     "auth:generate-schema": "bunx @better-auth/cli generate --config auth-cli.ts --output src/lib/db/schema/auth.schema.ts",
-    "release": "export GITHUB_TOKEN=$(gh auth token) && release-it",
-    "release:skip": "SKIP_CI=1 bun release"
+    "release": "export GITHUB_TOKEN=$(gh auth token) && release-it"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.6",
