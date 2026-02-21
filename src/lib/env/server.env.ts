@@ -29,8 +29,10 @@ export function serverEnv(env: Env) {
 
   if (!result.success) {
     console.error(
-      "Invalid environment variables:",
-      z.treeifyError(result.error),
+      JSON.stringify({
+        message: "Invalid environment variables",
+        error: z.treeifyError(result.error),
+      }),
     );
     throw new Error("Invalid environment variables");
   }
