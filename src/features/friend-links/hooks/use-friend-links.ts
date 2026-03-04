@@ -31,7 +31,7 @@ export function useFriendLinks() {
   });
 
   return {
-    submit: submitMutation.mutate,
+    submit: submitMutation.mutateAsync,
     isSubmitting: submitMutation.isPending,
   };
 }

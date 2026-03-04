@@ -15,12 +15,6 @@ import {
   createTurnstileError,
 } from "@/lib/errors";
 
-/* ======================= Type Guards ====================== */
-
-export function hasSession(context: SessionContext): context is AuthContext {
-  return context.session !== null;
-}
-
 /* ======================= Error Logging ====================== */
 
 export const errorLoggingMiddleware = createMiddleware({
